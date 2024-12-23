@@ -46,14 +46,11 @@ class Api extends RestController
                 ], RestController::HTTP_NOT_FOUND);
             }
 
-            // if (!password_verify($password, $user['customer_password'])) {
-
-            if ($password != $user['customer_password']) {
+            if (password_verify($password, $user['customer_password'])) {
+                // if ($password != $user['customer_password']) {
                 $this->response([
                     'status' => false,
                     'message' => 'Invalid password',
-                    'data' => $user['customer_password'],
-                    'dataP' => $password,
                 ], RestController::HTTP_UNAUTHORIZED);
                 return;
             }
@@ -66,6 +63,7 @@ class Api extends RestController
                     'id' => $user['customer_id'],
                     'name' => $user['customer_name'],
                     'phone' => $user['customer_phone'],
+                    'passHash' => password_hash($password, PASSWORD_DEFAULT),
                 ]
             ], RestController::HTTP_OK);
         }
