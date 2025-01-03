@@ -14,7 +14,7 @@ class Api extends RestController
         $this->load->model('User_model');
         $this->User_model = $this->User_model;
     }
-    public function login_post()
+    public function signin_post()
     {
         $phone = $this->post('phone');
         $password = $this->post('password');
@@ -63,7 +63,6 @@ class Api extends RestController
                     'id' => $user['customer_id'],
                     'name' => $user['customer_name'],
                     'phone' => $user['customer_phone'],
-                    'passHash' => password_hash($password, PASSWORD_DEFAULT),
                 ]
             ], RestController::HTTP_OK);
         }
