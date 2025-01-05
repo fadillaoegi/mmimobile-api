@@ -6,7 +6,7 @@ class User_model_api extends CI_Model
 {
     public function getUserByPhone($phone)
     {
-        $result = $this->db->get_where('ap_customer', ['customer_phone' => $phone])->row_array();
+        $result = $this->db->get_where('ap_customer', ['customer_phone' => $phone,])->row_array();
         return $result;
     }
 
