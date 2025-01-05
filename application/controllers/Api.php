@@ -5,16 +5,18 @@ use chriskacerguis\RestServer\RestController;
 
 class Api extends RestController
 {
-    public $User_model;
+    public $User_model_api;
     public function __construct()
     {
         parent::__construct();
 
         // NOTE: INITIAL MODEL
-        $this->load->model('User_model');
-        $this->User_model = $this->User_model;
+        $this->load->model('User_model_api');
+        $this->User_model_api = $this->User_model_api;
     }
-    public function signin_post()
+
+    // NOTE: SIGN IN API
+    public function signIn_post()
     {
         $phone = $this->post('phone');
         $password = $this->post('password');
@@ -24,13 +26,13 @@ class Api extends RestController
                 'message' => 'Phone number and password is required',
             ], RestController::HTTP_OK);
             return;
-        } elseif (empty($phone)) {
+        } else if (empty($phone)) {
             $this->response([
                 'status' => false,
                 'message' => 'Phone number is required',
             ], RestController::HTTP_OK);
             return;
-        } elseif (empty($password)) {
+        } else if (empty($password)) {
             $this->response([
                 'status' => false,
                 'message' => 'Password is required',
@@ -38,16 +40,23 @@ class Api extends RestController
 
             return;
         } else {
-            $user = $this->User_model->getUserByPhone($phone);
+            $user = $this->User_model_api->getUserByPhone($phone);
             if (!$user) {
-                $this->response([
+                $this->set_response([
                     'status' => false,
                     'message' => 'User not found',
                 ], RestController::HTTP_NOT_FOUND);
             }
 
-            if (password_verify($password, $user['customer_password'])) {
-                // if ($password != $user['customer_password']) {
+            if (!password_verify($password, $user['customer_password'])) {
+                $passwordIsHash = password_get_info($user['customer_password']);
+                if ($passwordIsHash['algo']) {
+                    $this->response([
+                        'status' => false,
+                        'message' => 'password still default, you must update',
+                    ], RestController::HTTP_UNAUTHORIZED);
+                    return;
+                }
                 $this->response([
                     'status' => false,
                     'message' => 'Invalid password',
@@ -63,6 +72,9 @@ class Api extends RestController
                     'id' => $user['customer_id'],
                     'name' => $user['customer_name'],
                     'phone' => $user['customer_phone'],
+                    'provinceId' => $user['province_id'],
+                    'cityId' => $user['city_id'],
+                    'subdistrictId' => $user['subdistrict_id'],
                 ]
             ], RestController::HTTP_OK);
         }
