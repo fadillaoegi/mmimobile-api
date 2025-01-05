@@ -82,9 +82,8 @@ class Api extends RestController
                 return;
             }
 
-            // NOTE: CHECKING PASSWORD
-            if (!password_verify($password, $user['customer_password'])) {
-                // NOTE: CHECKING DEFAULT PASSWORD
+            // NOTE: CHECKING DEFAULT PASSWORD
+            if ($password == $user['customer_password']) {
                 $passIsHash = password_get_info($user['customer_password']);
                 if ($passIsHash['algo'] == null) {
                     $customer_pass_default = true;
@@ -95,6 +94,10 @@ class Api extends RestController
                     ], RestController::HTTP_UNAUTHORIZED);
                     return;
                 }
+            }
+
+            // NOTE: CHECKING PASSWORD
+            if (!password_verify($password, $user['customer_password'])) {
                 $this->response([
                     'status' => false,
                     'message' => 'Invalid password',
