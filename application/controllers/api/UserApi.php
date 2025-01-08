@@ -3,7 +3,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 use chriskacerguis\RestServer\RestController;
 
-class Api extends RestController
+class UserApi extends RestController
 {
     public $User_model_api;
     public function __construct()
@@ -11,7 +11,7 @@ class Api extends RestController
         parent::__construct();
 
         // NOTE: INITIAL MODEL
-        $this->load->model('User_model_api');
+        $this->load->model('api/User_model_api');
         $this->User_model_api = $this->User_model_api;
     }
 
@@ -26,19 +26,19 @@ class Api extends RestController
             $this->response([
                 'status' => false,
                 'message' => 'Phone number and password is required',
-            ], RestController::HTTP_BAD_REQUEST);
+            ], RestController::HTTP_OK);
             return;
         } else if (empty($phone)) {
             $this->response([
                 'status' => false,
                 'message' => 'Phone number is required',
-            ], RestController::HTTP_BAD_REQUEST);
+            ], RestController::HTTP_OK);
             return;
         } else if (empty($password)) {
             $this->response([
                 'status' => false,
                 'message' => 'Password is required',
-            ], RestController::HTTP_BAD_REQUEST);
+            ], RestController::HTTP_OK);
 
             return;
         } else {
@@ -59,21 +59,32 @@ class Api extends RestController
                 $this->set_response([
                     'status' => false,
                     'message' => 'User not found',
-                ], RestController::HTTP_NOT_FOUND);
+                ], RestController::HTTP_OK);
                 return;
             }
+
+            // NOTE: CHECKING CUSTOMER TYPE
+            if ($user['customer_type_id'] > 0) $pelanggan = true;
 
             // NOTE: CHECKING DEFAULT PASSWORD
             if ($password == $user['customer_password']) {
                 $passIsHash = password_get_info($user['customer_password']);
-                if ($passIsHash['algo'] == null) {
-                    $customer_pass_default = true;
+                if ($pelanggan) {
                     $this->set_response([
                         'status' => false,
                         'status_pass_default' => $customer_pass_default,
                         'message' => 'password still default, you must update',
-                    ], RestController::HTTP_UNAUTHORIZED);
+                        'data' => [
+                            'customer_id' => $user['customer_id'],
+                            'customer_status' => $pelanggan,
+                            'customer_pass_default' => $customer_pass_default,
+                            'customer_name' => $user['customer_name'],
+                        ]
+                    ], RestController::HTTP_OK);
                     return;
+                }
+                if ($passIsHash['algo'] == null) {
+                    $customer_pass_default = true;
                 }
             }
 
@@ -82,13 +93,25 @@ class Api extends RestController
                 $this->set_response([
                     'status' => false,
                     'message' => 'Invalid password',
-                ], RestController::HTTP_UNAUTHORIZED);
+                ], RestController::HTTP_OK);
                 return;
             }
 
-            // NOTE: CHECKING CUSTOMER TYPE
-            if ($user['customer_type_id'] > 0) $pelanggan = true;
-
+            // NOTE: CHEKING AGAIN CUTOMER OR NOT
+            if ($pelanggan) {
+                $this->set_response([
+                    'status' => false,
+                    'status_pass_default' => $customer_pass_default,
+                    'message' => 'password still default, you must update',
+                    'data' => [
+                        'customer_id' => $user['customer_id'],
+                        'customer_status' => $pelanggan,
+                        'customer_pass_default' => $customer_pass_default,
+                        'customer_name' => $user['customer_name'],
+                    ]
+                ], RestController::HTTP_OK);
+                return;
+            }
             // NOTE: LOGIN SUCCESSFULL
             $this->set_response([
                 'status' => true,
@@ -120,19 +143,19 @@ class Api extends RestController
             $this->set_response([
                 'status' => false,
                 'message' => 'Customer ID and Password is required'
-            ], RestController::HTTP_BAD_REQUEST);
+            ], RestController::HTTP_OK);
             return;
         } else if (empty($id)) {
             $this->set_response([
                 'status' => false,
                 'message' => 'Customer ID is required'
-            ], RestController::HTTP_BAD_REQUEST,);
+            ], RestController::HTTP_OK,);
             return;
         } else if (empty($newPassword)) {
             $this->set_response([
                 'status' => false,
                 'message' => 'Customer Password is required'
-            ], RestController::HTTP_BAD_REQUEST);
+            ], RestController::HTTP_OK);
             return;
         }
 
@@ -145,7 +168,7 @@ class Api extends RestController
                 'status' => false,
                 'message' => 'Customer not found',
                 'data' => []
-            ], RestController::HTTP_NOT_FOUND);
+            ], RestController::HTTP_OK);
             return;
         }
 
@@ -159,7 +182,7 @@ class Api extends RestController
         if ($updateNewPass) {
             $this->set_response(['status' => true, 'message' => 'Password updated successfully'], RestController::HTTP_OK);
         } else {
-            $this->set_response(['status' => false, 'message' => 'Failed to update password'], RestController::HTTP_INTERNAL_ERROR);
+            $this->set_response(['status' => false, 'message' => 'Failed to update password'], RestController::HTTP_OK);
         }
     }
 }
