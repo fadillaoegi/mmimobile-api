@@ -26,19 +26,19 @@ class UserApi extends RestController
             $this->response([
                 'status' => false,
                 'message' => 'Phone number and password is required',
-            ], RestController::HTTP_OK);
+            ], RestController::HTTP_BAD_REQUEST);
             return;
         } else if (empty($phone)) {
             $this->response([
                 'status' => false,
                 'message' => 'Phone number is required',
-            ], RestController::HTTP_OK);
+            ], RestController::HTTP_BAD_REQUEST);
             return;
         } else if (empty($password)) {
             $this->response([
                 'status' => false,
                 'message' => 'Password is required',
-            ], RestController::HTTP_OK);
+            ], RestController::HTTP_BAD_REQUEST);
 
             return;
         } else {
@@ -63,28 +63,25 @@ class UserApi extends RestController
                 return;
             }
 
-            // NOTE: CHECKING CUSTOMER TYPE
-            if ($user['customer_type_id'] > 0) $pelanggan = true;
-
             // NOTE: CHECKING DEFAULT PASSWORD
             if ($password == $user['customer_password']) {
                 $passIsHash = password_get_info($user['customer_password']);
-                if ($pelanggan) {
+                // NOTE: CHECKING CUSTOMER TYPE
+                if ($user['customer_type_id'] < 2) $pelanggan = true;
+                if ($passIsHash['algo'] == null) {
+                    $customer_pass_default = true;
                     $this->set_response([
                         'status' => false,
                         'status_pass_default' => $customer_pass_default,
                         'message' => 'password still default, you must update',
-                        'data' => [
-                            'customer_id' => $user['customer_id'],
+                        "data" => [
                             'customer_status' => $pelanggan,
-                            'customer_pass_default' => $customer_pass_default,
+                            'customer_id' => $user['customer_id'],
+                            'customer_type_id' => $user['customer_type_id'],
                             'customer_name' => $user['customer_name'],
                         ]
                     ], RestController::HTTP_OK);
                     return;
-                }
-                if ($passIsHash['algo'] == null) {
-                    $customer_pass_default = true;
                 }
             }
 
@@ -97,36 +94,26 @@ class UserApi extends RestController
                 return;
             }
 
-            // NOTE: CHEKING AGAIN CUTOMER OR NOT
-            if ($pelanggan) {
-                $this->set_response([
-                    'status' => false,
-                    'status_pass_default' => $customer_pass_default,
-                    'message' => 'password still default, you must update',
-                    'data' => [
-                        'customer_id' => $user['customer_id'],
-                        'customer_status' => $pelanggan,
-                        'customer_pass_default' => $customer_pass_default,
-                        'customer_name' => $user['customer_name'],
-                    ]
-                ], RestController::HTTP_OK);
-                return;
-            }
+            // NOTE: CHECKING CUSTOMER TYPE
+            if ($user['customer_type_id'] < 2) $pelanggan = true;
+
             // NOTE: LOGIN SUCCESSFULL
             $this->set_response([
                 'status' => true,
+                'status_pass_default' => $customer_pass_default,
                 'message' => 'Login successfull',
                 'data' => [
-                    'customer_id' => $user['customer_id'],
                     'customer_status' => $pelanggan,
                     'customer_pass_default' => $customer_pass_default,
-                    'customer_name' => $user['customer_name'],
-                    'customer_date_birth' => $user['customer_date_birth'],
-                    'customer_phone' => $user['customer_phone'],
-                    'customer_type_id' => $user['customer_type_id'],
                     'province_id' => $user['province_id'] == null ? "0" : $user['province_id'],
                     'city_id' => $user['city_id'] == null ? "0" : $user['city_id'],
                     'subdistrict_id' => $user['subdistrict_id'] == null ? "0" : $user['subdistrict_id'],
+                    'customer_id' => $user['customer_id'],
+                    'customer_type_id' => $user['customer_type_id'],
+                    'customer_date_birth' => $user['customer_date_birth'],
+                    'customer_name' => $user['customer_name'],
+                    'customer_phone' => $user['customer_phone'],
+                    'customer_address' => $user['customer_address'],
                 ]
             ], RestController::HTTP_OK);
         }
@@ -185,4 +172,9 @@ class UserApi extends RestController
             $this->set_response(['status' => false, 'message' => 'Failed to update password'], RestController::HTTP_OK);
         }
     }
+
+    // NOTE: UPDATE PASSWORD 
+    // NOTE: UPDATE PHONE 
+    // NOTE: UPDATE PROFILE 
+
 }
