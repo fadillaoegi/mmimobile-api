@@ -28,4 +28,25 @@ class User_model_api extends CI_Model
         $result = $this->db->update('ap_customer', ['customer_password' => $passHash]);
         return $result;
     }
+
+    public function updatePhoneById($customerId, $phone)
+    {
+        $this->db->where('customer_id', $customerId);
+        $result = $this->db->update('ap_customer', ['customer_phone' => $phone]);
+        return $result;
+    }
+
+    public function updateEmailById($customerId, $email)
+    {
+        $this->db->where('customer_id', $customerId);
+        $result = $this->db->update('ap_customer', ['customer_email' => $email]);
+        return $result;
+    }
+
+    public function updateNameById($customerId, $name)
+    {
+        $this->db->where('customer_id', $customerId);
+        $result = $this->db->update('ap_customer', ['customer_name' => $name]);
+        return $result;
+    }
 }
