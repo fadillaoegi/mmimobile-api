@@ -36,6 +36,16 @@ class User_model_api extends CI_Model
         return $result;
     }
 
+    public function isEmailExist($email, $excludeCustomerId = null)
+    {
+        $this->db->where('customer_email', $email);
+        if ($excludeCustomerId) {
+            $this->db->where('customer_id !=', $excludeCustomerId);
+        }
+        $query = $this->db->get('ap_customer');
+        return $query->num_rows() > 0;
+    }
+
     public function updateEmailById($customerId, $email)
     {
         $this->db->where('customer_id', $customerId);
@@ -49,4 +59,5 @@ class User_model_api extends CI_Model
         $result = $this->db->update('ap_customer', ['customer_name' => $name]);
         return $result;
     }
+
 }

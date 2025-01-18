@@ -431,6 +431,15 @@ class UserApi extends RestController
             return;
         }
 
+        // Periksa apakah email sudah ada
+        if ($this->User_model_api->isEmailExist($emailNew, $customerId)) {
+            $this->set_response([
+                'status' => false,
+                'message' => 'Email already exists',
+            ], RestController::HTTP_OK);
+            return;
+        }
+
         if ($type == 'update' || $type == 'edit') {
             if (empty($password)) {
                 $this->set_response([
@@ -449,6 +458,7 @@ class UserApi extends RestController
                 return;
             }
         }
+
 
         // NOTE: UPDATE EMAIL
         $updated = $this->User_model_api->updateEmailById($customerId, $emailNew);
